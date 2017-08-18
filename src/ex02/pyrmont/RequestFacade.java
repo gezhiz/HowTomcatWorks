@@ -9,7 +9,7 @@ import java.util.Map;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletRequest;
-
+//封装了Request，并且，Request类的parse方法不会暴露
 public class RequestFacade implements ServletRequest {
 
   private ServletRequest request = null;

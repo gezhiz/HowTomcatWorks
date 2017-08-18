@@ -46,6 +46,7 @@ public class ServletProcessor2 {
     ResponseFacade responseFacade = new ResponseFacade(response);
     try {
       servlet = (Servlet) myClass.newInstance();
+      //因为Servlet对象不在这个包中，编写Servlet的程序员能够拿到Request对象和Response对象，他们拿到的类型是ServletRequest类型的，强制转换成Request类型的话能调用到parse方法
       servlet.service((ServletRequest) requestFacade, (ServletResponse) responseFacade);
     }
     catch (Exception e) {
