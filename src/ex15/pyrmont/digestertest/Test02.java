@@ -20,7 +20,7 @@ public class Test02 {
     digester.addObjectCreate("employee/office/address", 
       "ex15.pyrmont.digestertest.Address");
     digester.addSetProperties("employee/office/address");
-    digester.addSetNext("employee/office/address", "setAddress"); 
+    digester.addSetNext("employee/office/address", "setAddress");//见到规则"employee/office/address"就调用setAddresds方法
     try {
       Employee employee = (Employee) digester.parse(file);
       ArrayList offices = employee.getOffices();

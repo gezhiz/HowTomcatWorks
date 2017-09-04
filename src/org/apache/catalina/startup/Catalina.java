@@ -342,14 +342,15 @@ public class Catalina {
                             "org.apache.catalina.LifecycleListener");
 
         // Add RuleSets for nested elements
+        //注意，通过以下的代码可以发现，Catalina启动必须要有Engine
         digester.addRuleSet(new NamingRuleSet("Server/GlobalNamingResources/"));
-        digester.addRuleSet(new EngineRuleSet("Server/Service/"));
-        digester.addRuleSet(new HostRuleSet("Server/Service/Engine/"));
+        digester.addRuleSet(new EngineRuleSet("Server/Service/"));//可能会调用setContainer方法，把service的container设置成engine
+        digester.addRuleSet(new HostRuleSet("Server/Service/Engine/"));//可能会调用addChild方法，为engine添加host
         digester.addRuleSet(new ContextRuleSet("Server/Service/Engine/Default"));
         digester.addRuleSet(new NamingRuleSet("Server/Service/Engine/DefaultContext/"));
         digester.addRuleSet(new ContextRuleSet("Server/Service/Engine/Host/Default"));
         digester.addRuleSet(new NamingRuleSet("Server/Service/Engine/Host/DefaultContext/"));
-        digester.addRuleSet(new ContextRuleSet("Server/Service/Engine/Host/"));
+        digester.addRuleSet(new ContextRuleSet("Server/Service/Engine/Host/"));//可能会调用
         digester.addRuleSet(new NamingRuleSet("Server/Service/Engine/Host/Context/"));
 
         digester.addRule("Server/Service/Engine",
@@ -440,7 +441,7 @@ public class Catalina {
                 new InputSource("file://" + file.getAbsolutePath());
             FileInputStream fis = new FileInputStream(file);
             is.setByteStream(fis);
-            digester.push(this);
+            digester.push(this);//让Catalina对象成为digester堆栈的第一个对象
             digester.parse(is);
             fis.close();
         } catch (Exception e) {
@@ -501,8 +502,8 @@ public class Catalina {
         // Start the new server
         if (server instanceof Lifecycle) {
             try {
-                server.initialize();
-                ((Lifecycle) server).start();
+                server.initialize();//初始化server，service,connector等
+                ((Lifecycle) server).start();//启动server组件，service组件，以及所有的子组件(connector组件,host组件)
                 try {
                     // Register shutdown hook
                     Runtime.getRuntime().addShutdownHook(shutdownHook);

@@ -130,7 +130,7 @@ public class HostConfig
      * The names of applications that we have auto-deployed (to avoid
      * double deployment attempts).
      */
-    protected ArrayList deployed = new ArrayList();
+    protected ArrayList deployed = new ArrayList();//已部署的路径列表，用来检查路径是否可以部署
 
 
     /**
@@ -402,9 +402,9 @@ public class HostConfig
             return;
         String files[] = appBase.list();
 
-        deployDescriptors(appBase, files);
-        deployWARs(appBase, files);
-        deployDirectories(appBase, files);
+        deployDescriptors(appBase, files);//通过编写一个XML文件来描述一个上下文对象
+        deployWARs(appBase, files);//通过war文件来描述一个上下文对象
+        deployDirectories(appBase, files);//通过一个application下的路径描述一个上下文对象
 
     }
 
@@ -611,12 +611,14 @@ public class HostConfig
                     webXmlLastModified.put
                         (contextName, new Long(newLastModified));
                 } else {
+                    //有上一次修改的时间,则重启该context
                     if (lastModified.longValue() != newLastModified) {
                         webXmlLastModified.remove(contextName);
                         ((Lifecycle) context).stop();
                         // Note: If the context was already stopped, a 
                         // Lifecycle exception will be thrown, and the context
                         // won't be restarted
+                        //如果context已经停止了，生命周期的异常将会被抛出，context将不会被重启
                         ((Lifecycle) context).start();
                     }
                 }
@@ -1008,7 +1010,7 @@ public class HostConfig
             deployApps();
 
             // Check for web.xml modification
-            checkWebXmlLastModified();
+            checkWebXmlLastModified();//迭代所有的 部署上下文并检查 web.xml 的时间戳
 
         }
 

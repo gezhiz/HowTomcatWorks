@@ -129,7 +129,7 @@ public class BasicAuthenticator
      *
      * @param request Request we are processing
      * @param response Response we are creating
-     * @param login Login configuration describing how authentication
+     * @param config Login configuration describing how authentication
      *              should be performed
      *
      * @exception IOException if an input/output error occurs
@@ -158,6 +158,7 @@ public class BasicAuthenticator
         String password = parsePassword(authorization);
         principal = context.getRealm().authenticate(username, password);
         if (principal != null) {
+            //认证成功
             register(request, response, principal, Constants.BASIC_METHOD,
                      username, password);
             return (true);

@@ -68,7 +68,7 @@ public class SimpleWrapper implements Wrapper, Pipeline {
       throw new ServletException("servlet class has not been specified");
     }
 
-    Loader loader = getLoader();
+    Loader loader = getLoader();//如果当前的loader没有被初始化，则寻找父容器直到找到loader为止
     // Acquire an instance of the class loader to be used
     if (loader==null) {
       throw new ServletException("No loader.");

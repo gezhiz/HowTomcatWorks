@@ -428,7 +428,7 @@ public final class StandardWrapper
      * Set the maximum number of instances that will be allocated when a single
      * thread model servlet is used.
      *
-     * @param maxInstnces New value of maxInstances
+     * @param maxInstances New value of maxInstances
      */
     public void setMaxInstances(int maxInstances) {
 
@@ -469,7 +469,7 @@ public final class StandardWrapper
     /**
      * Set the run-as identity for this servlet.
      *
-     * @param value New run-as identity value
+     * @param runAs New run-as identity value
      */
     public void setRunAs(String runAs) {
 
@@ -669,8 +669,10 @@ public final class StandardWrapper
         synchronized (instancePool) {
 
             while (countAllocated >= nInstances) {
+                //如果正在服务的数量大于servlet实例总数，则进入循环
                 // Allocate a new instance if possible, or else wait
                 if (nInstances < maxInstances) {
+                    //如果可以新建servlet，则新建servlet，并入栈
                     try {
                         instancePool.push(loadServlet());
                         nInstances++;
@@ -681,6 +683,7 @@ public final class StandardWrapper
                             (sm.getString("standardWrapper.allocate"), e);
                     }
                 } else {
+                    //如果无法新建servlet，则等待其他servlet的释放入栈，然后再接着跑循环进行servlet的分配
                     try {
                         instancePool.wait();
                     } catch (InterruptedException e) {
@@ -690,7 +693,7 @@ public final class StandardWrapper
             }
             if (debug >= 2)
                 log("  Returning allocated STM instance");
-            countAllocated++;
+            countAllocated++;//正在服务的servlet的数量加1
             return (Servlet) instancePool.pop();
 
         }
@@ -851,7 +854,7 @@ public final class StandardWrapper
 
             ClassLoader classLoader = loader.getClassLoader();
 
-            // Special case class loader for a container provided servlet
+            // Special case class loader for a container provided servlet catalina内部的servlet
             if (isContainerProvidedServlet(actualClass)) {
                 classLoader = this.getClass().getClassLoader();
                 log(sm.getString
@@ -1239,7 +1242,7 @@ System.out.println("after calling setWrapper");
      * container provided servlet class that should be loaded by the
      * server class loader.
      *
-     * @param name Name of the class to be checked
+     * @param classname Name of the class to be checked
      */
     private boolean isContainerProvidedServlet(String classname) {
 

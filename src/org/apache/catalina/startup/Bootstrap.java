@@ -71,20 +71,20 @@ public final class Bootstrap {
                 ClassLoaderFactory.createClassLoader(unpacked, packed2, null);
 
             unpacked[0] = new File(getCatalinaHome(),
-                                   "server" + File.separator + "classes");
+                                   "server" + File.separator + "classes");//加载server/classes下的文件
             packed[0] = new File(getCatalinaHome(),
-                                 "server" + File.separator + "lib");
+                                 "server" + File.separator + "lib");//加载server/lib目录下的jar文件
             catalinaLoader =
                 ClassLoaderFactory.createClassLoader(unpacked, packed,
-                                                     commonLoader);
+                                                     commonLoader);//parent类加载器：commonLoader
 
             unpacked[0] = new File(getCatalinaBase(),
-                                   "shared" + File.separator + "classes");
+                                   "shared" + File.separator + "classes");//加载shared/classes目录下的文件
             packed[0] = new File(getCatalinaBase(),
-                                 "shared" + File.separator + "lib");
+                                 "shared" + File.separator + "lib");//加载shared/lib目录下的jar文件
             sharedLoader =
                 ClassLoaderFactory.createClassLoader(unpacked, packed,
-                                                     commonLoader);
+                                                     commonLoader);//parent类加载器：commonLoader
         } catch (Throwable t) {
 
             log("Class loader creation threw exception", t);

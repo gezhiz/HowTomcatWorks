@@ -66,7 +66,7 @@ public final class Bootstrap1 {
     // add realm
     Realm realm = new SimpleRealm();
 
-    context.setRealm(realm);
+    context.setRealm(realm);//注意：container的getRealm()方法返回的是父容器的
     context.addConstraint(constraint);
     context.setLoginConfig(loginConfig);
 

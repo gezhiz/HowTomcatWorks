@@ -289,7 +289,7 @@ public final class HttpConnector
     /**
      * Set the connection timeout for this Connector.
      *
-     * @param count The new connection timeout
+     * @param connectionTimeout The new connection timeout
      */
     public void setConnectionTimeout(int connectionTimeout) {
 
@@ -948,7 +948,7 @@ public final class HttpConnector
             try {
                 //                if (debug >= 3)
                 //                    log("run: Waiting on serverSocket.accept()");
-                socket = serverSocket.accept();
+                socket = serverSocket.accept();//socket在connector初始化的时候就跟着一起初始化了。
                 //                if (debug >= 3)
                 //                    log("run: Returned from serverSocket.accept()");
                 if (connectionTimeout > 0)
@@ -1001,6 +1001,7 @@ public final class HttpConnector
 
             // Hand this socket off to an appropriate processor
             HttpProcessor processor = createProcessor();
+            //如果超出了最大可访问量，则丢弃本次请求
             if (processor == null) {
                 try {
                     log(sm.getString("httpConnector.noProcessor"));
@@ -1012,7 +1013,8 @@ public final class HttpConnector
             }
             //            if (debug >= 3)
             //                log("run: Assigning socket to processor " + processor);
-            processor.assign(socket);
+            processor.assign(socket);//给processor分配socket，然后对socket进行服务
+            //在接到被分配的socket后，processor所在的线程会被唤醒，然后执行run()方法,执行process()方法,服务完成后，把processor对象放回栈中
 
             // The processor will recycle itself when it finishes
 
@@ -1035,8 +1037,8 @@ public final class HttpConnector
 
         log(sm.getString("httpConnector.starting"));
 
-        thread = new Thread(this, threadName);
-        thread.setDaemon(true);
+        thread = new Thread(this, threadName);//启动connector这个任务
+        thread.setDaemon(true);//守护线程，﻿当所有的非守护线程结束时，程序也就终止了，同时会杀死进程中的所有守护线程。典型的：垃圾回收期就是一个守护线程。
         thread.start();
 
     }
@@ -1161,7 +1163,7 @@ public final class HttpConnector
         while (curProcessors < minProcessors) {
             if ((maxProcessors > 0) && (curProcessors >= maxProcessors))
                 break;
-            HttpProcessor processor = newProcessor();
+            HttpProcessor processor = newProcessor();//每次新建的process，都直接将其启动，然后等待socket的接入
             recycle(processor);
         }
 

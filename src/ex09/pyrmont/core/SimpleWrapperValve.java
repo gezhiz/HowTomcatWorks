@@ -39,7 +39,7 @@ public class SimpleWrapperValve implements Valve, Contained {
 
     //-- new addition -----------------------------------
     Context context = (Context) wrapper.getParent();
-    request.setContext(context);
+    request.setContext(context);//必须给request对象上下文才能够获取上线问的manager对象，进而获取Session对象。
     //-------------------------------------
     // Allocate a servlet instance to process this request
     try {

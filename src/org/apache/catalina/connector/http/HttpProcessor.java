@@ -278,7 +278,7 @@ final class HttpProcessor
 
     /**
      * Process an incoming TCP/IP connection on the specified socket.  Any
-     * exception that occurs during processing must be logged and swallowed.
+     * exception that occurs during processing must be logged and swallowed(吞没).
      * <b>NOTE</b>:  This method is called from our Connector's thread.  We
      * must assign it to our own thread so that multiple simultaneous
      * requests can be handled.
@@ -289,12 +289,14 @@ final class HttpProcessor
 
         // Wait for the Processor to get the previous Socket
         while (available) {
+            //当前socket是可用的，则赋值方法等待
             try {
                 wait();
             } catch (InterruptedException e) {
             }
         }
 
+        //当前socket不可用，才能给socket赋值
         // Store the newly available Socket and notify our thread
         this.socket = socket;
         available = true;
@@ -317,6 +319,7 @@ final class HttpProcessor
 
         // Wait for the Connector to provide a new Socket
         while (!available) {
+            //available == false  socket当前不可用,则一直等待
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -324,6 +327,8 @@ final class HttpProcessor
         }
 
         // Notify the Connector that we have received this Socket
+        //await 需要使用一个 地变量(socket)而不是返回实例的 socket 变量呢?因为这样 一来，
+        // 在当前 socket 被完全处理之前，实例的 socket 变量可以赋给下一个前来的 socket。
         Socket socket = this.socket;
         available = false;
         notifyAll();
@@ -969,6 +974,8 @@ final class HttpProcessor
                 ((HttpServletResponse) response).setHeader
                     ("Date", FastHttpDateFormat.getCurrentDate());
                 if (ok) {
+                    //如果使用的是StandardService启动，getContainer()获取到的是Engine对象，
+                    // 因为StandardService在addConnector()方法，调用了connectoner.set(this.container)，和service拥有同一个container
                     connector.getContainer().invoke(request, response);
                 }
             } catch (ServletException e) {
@@ -1076,6 +1083,8 @@ final class HttpProcessor
         while (!stopped) {
 
             // Wait for the next socket to be assigned
+            //await拿到的socket对象是await方法的本地变量，而不是processor的socket属性，
+            // 这样，assign方法可以在process()方法执行完成之前接入下一个socket对象
             Socket socket = await();
             if (socket == null)
                 continue;
@@ -1088,7 +1097,7 @@ final class HttpProcessor
             }
 
             // Finish up this request
-            connector.recycle(this);
+            connector.recycle(this);//调用当前连接器的recycle方法，把processor对象推回到connector的processors栈中去
 
         }
 

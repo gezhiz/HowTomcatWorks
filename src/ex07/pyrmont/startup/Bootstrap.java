@@ -10,6 +10,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.Lifecycle;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.Loader;
+import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.logger.FileLogger;
 import org.apache.catalina.Mapper;
 import org.apache.catalina.Wrapper;
@@ -24,9 +25,11 @@ public final class Bootstrap {
     Wrapper wrapper2 = new SimpleWrapper();
     wrapper2.setName("Modern");
     wrapper2.setServletClass("ModernServlet");
-    Loader loader = new SimpleLoader();
+    Loader loader = new WebappLoader();
 
     Context context = new SimpleContext();
+    loader.setContainer(context);
+
     context.addChild(wrapper1);
     context.addChild(wrapper2);
 

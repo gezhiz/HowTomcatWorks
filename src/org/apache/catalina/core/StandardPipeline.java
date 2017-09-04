@@ -637,7 +637,7 @@ public class StandardPipeline
 
             // Invoke the requested Valve for the current request thread
             if (subscript < valves.length) {
-                valves[subscript].invoke(request, response, this);
+                valves[subscript].invoke(request, response, this);//注意：在Valve的invoke必须调用ValveContext对象的invokeNext方法
             } else if ((subscript == valves.length) && (basic != null)) {
                 basic.invoke(request, response, this);
             } else {

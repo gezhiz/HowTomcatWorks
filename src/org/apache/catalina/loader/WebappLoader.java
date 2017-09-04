@@ -1349,7 +1349,7 @@ public class WebappLoader
                 continue;
             }
 
-            // Handle a need for reloading
+            // Handle a need for reloading,有改动，则通知与Loader相关联的context重新加载
             notifyContext();
             break;
 
@@ -1376,7 +1376,7 @@ public class WebappLoader
          */
         public void run() {
 
-            ((Context) container).reload();
+            ((Context) container).reload();//重新加载
 
         }
 

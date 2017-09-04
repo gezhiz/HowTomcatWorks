@@ -35,6 +35,7 @@ public class SimpleContextConfig implements LifecycleListener {
     }
 
     // Has an authenticator been configured already?
+    //保证没有重复的阀门
     Pipeline pipeline = ((StandardContext) context).getPipeline();
     if (pipeline != null) {
       Valve basic = pipeline.getBasic();

@@ -75,6 +75,8 @@ public class HttpProcessor {
   }
 
   /**
+   * 解析Http情趣的头部的部分信息"cookie", "content-length", "content-type"
+   *
    * This method is the simplified version of the similar method in
    * org.apache.catalina.connector.http.HttpProcessor.
    * However, this method only parses some "easy" headers, such as
@@ -87,7 +89,7 @@ public class HttpProcessor {
   private void parseHeaders(SocketInputStream input)
     throws IOException, ServletException {
     while (true) {
-      HttpHeader header = new HttpHeader();;
+      HttpHeader header = new HttpHeader();
 
       // Read the next header
       input.readHeader(header);
@@ -204,7 +206,7 @@ public class HttpProcessor {
       request.setRequestedSessionURL(false);
     }
 
-    // Normalize URI (using String operations at the moment)
+    // Normalize URI (using String operations at the moment) 格式化uri
     String normalizedUri = normalize(uri);
 
     // Set the corresponding request properties
