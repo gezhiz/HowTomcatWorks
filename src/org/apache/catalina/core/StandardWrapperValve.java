@@ -180,7 +180,7 @@ final class StandardWrapperValve
             else
                 sreq.removeAttribute(Globals.JSP_FILE_ATTR);
             if ((servlet != null) && (filterChain != null)) {
-                filterChain.doFilter(sreq, sres);
+                filterChain.doFilter(sreq, sres);//执行过滤连中所有该执行的过滤器，并在过滤器执行完成后，执行servlet的service()
             }
             sreq.removeAttribute(Globals.JSP_FILE_ATTR);
         } catch (IOException e) {

@@ -197,7 +197,7 @@ final class ApplicationFilterChain implements FilterChain {
 
         // Construct an iterator the first time this method is called
         if (this.iterator == null)
-            this.iterator = filters.iterator();
+            this.iterator = filters.iterator();//只调用一次
 
         // Call the next filter if there is one
         if (this.iterator.hasNext()) {
@@ -208,6 +208,8 @@ final class ApplicationFilterChain implements FilterChain {
                 filter = filterConfig.getFilter();
                 support.fireInstanceEvent(InstanceEvent.BEFORE_FILTER_EVENT,
                                           filter, request, response);
+                //调用过滤器的过滤方法，所有的Filter的doFilter方法都必须要在内部
+                // 执行filterChain.doFilter()方法后才会调用后续的过滤器
                 filter.doFilter(request, response, this);
                 support.fireInstanceEvent(InstanceEvent.AFTER_FILTER_EVENT,
                                           filter, request, response);
@@ -240,6 +242,7 @@ final class ApplicationFilterChain implements FilterChain {
         try {
             support.fireInstanceEvent(InstanceEvent.BEFORE_SERVICE_EVENT,
                                       servlet, request, response);
+            //执行servlet
             if ((request instanceof HttpServletRequest) &&
                 (response instanceof HttpServletResponse)) {
                 servlet.service((HttpServletRequest) request,
@@ -302,7 +305,7 @@ final class ApplicationFilterChain implements FilterChain {
     /**
      * Set the servlet that will be executed at the end of this chain.
      *
-     * @param wrapper The Wrapper for the servlet to be executed
+     * @param servlet The Wrapper for the servlet to be executed
      */
     void setServlet(Servlet servlet) {
 

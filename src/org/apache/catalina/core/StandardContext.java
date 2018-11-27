@@ -1436,6 +1436,7 @@ public class StandardContext
 
     /**
      * Add a filter mapping to this Context.
+     * 在web.xml的digester规则中能看到会有addFilterMap的规则 ContextConfig.createWebDigester()
      *
      * @param filterMap The filter mapping to be added
      *
@@ -3378,6 +3379,7 @@ public class StandardContext
                 ((BaseDirContext) dirContext).allocate();
             }
         }
+        //很重要，这是保证各个StandardContext之间隔离性的重要原因
         if (getLoader() == null) {      // (2) Required by Manager
             if (getPrivileged()) {
                 if (debug >= 1)
