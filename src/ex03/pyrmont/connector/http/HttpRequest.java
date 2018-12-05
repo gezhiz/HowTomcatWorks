@@ -149,7 +149,7 @@ public class HttpRequest implements HttpServletRequest {
     // Parse any parameters specified in the query string
     String queryString = getQueryString();
     try {
-      RequestUtil.parseParameters(results, queryString, encoding);
+      RequestUtil.parseParameters(results, queryString, encoding);//解析queryString中的数据
     }
     catch (UnsupportedEncodingException e) {
       ;
@@ -184,7 +184,7 @@ public class HttpRequest implements HttpServletRequest {
         if (len < max) {
           throw new RuntimeException("Content length mismatch");
         }
-        RequestUtil.parseParameters(results, buf, encoding);
+        RequestUtil.parseParameters(results, buf, encoding);//解析post请求的数据
       }
       catch (UnsupportedEncodingException ue) {
         ;

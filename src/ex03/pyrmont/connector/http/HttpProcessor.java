@@ -51,8 +51,8 @@ public class HttpProcessor {
 
       response.setHeader("Server", "Pyrmont Servlet Container");
 
-      parseRequest(input, output);
-      parseHeaders(input);
+      parseRequest(input, output);//解析请求方法：请求方式，uri,请求协议
+      parseHeaders(input);//解析请求头
 
       //check if this is a request for a servlet or a static resource
       //a request for a servlet begins with "/servlet/"
@@ -91,8 +91,8 @@ public class HttpProcessor {
     while (true) {
       HttpHeader header = new HttpHeader();
 
-      // Read the next header
-      input.readHeader(header);
+      // Read the next header  从同一个inputStream中读取信息，读取的顺序不能反
+      input.readHeader(header);//每一次读取一条header
       if (header.nameEnd == 0) {
         if (header.valueEnd == 0) {
           return;
@@ -106,7 +106,7 @@ public class HttpProcessor {
       String name = new String(header.name, 0, header.nameEnd);
       String value = new String(header.value, 0, header.valueEnd);
       request.addHeader(name, value);
-      // do something for some headers, ignore others.
+      // do something for some headers, ignore others.解析cookie里的内容，
       if (name.equals("cookie")) {
         Cookie cookies[] = RequestUtil.parseCookieHeader(value);
         for (int i = 0; i < cookies.length; i++) {
@@ -119,7 +119,7 @@ public class HttpProcessor {
               request.setRequestedSessionURL(false);
             }
           }
-          request.addCookie(cookies[i]);
+          request.addCookie(cookies[i]);//添加cookie
         }
       }
       else if (name.equals("content-length")) {
@@ -198,7 +198,7 @@ public class HttpProcessor {
         request.setRequestedSessionId(rest);
         rest = "";
       }
-      request.setRequestedSessionURL(true);
+      request.setRequestedSessionURL(true);//标识session在url中而不是在cookie中
       uri = uri.substring(0, semicolon) + rest;
     }
     else {
@@ -206,7 +206,7 @@ public class HttpProcessor {
       request.setRequestedSessionURL(false);
     }
 
-    // Normalize URI (using String operations at the moment) 格式化uri
+    // Normalize URI (using String operations at the moment) 对非正常的url进行修正， 格式化uri
     String normalizedUri = normalize(uri);
 
     // Set the corresponding request properties
@@ -220,7 +220,7 @@ public class HttpProcessor {
     }
 
     if (normalizedUri == null) {
-      throw new ServletException("Invalid URI: " + uri + "'");
+      throw new ServletException("Invalid URI: " + uri + "'");//若uri无法修正，则抛出异常
     }
   }
 
@@ -239,10 +239,12 @@ public class HttpProcessor {
     // Create a place for the normalized path
     String normalized = path;
 
+    // %7E 就是~的URL编码后的结果
     // Normalize "/%7E" and "/%7e" at the beginning to "/~"
     if (normalized.startsWith("/%7E") || normalized.startsWith("/%7e"))
       normalized = "/~" + normalized.substring(4);
 
+    // url不允许出现的字符
     // Prevent encoding '%', '/', '.' and '\', which are special reserved
     // characters
     if ((normalized.indexOf("%25") >= 0)
@@ -273,6 +275,7 @@ public class HttpProcessor {
         normalized.substring(index + 1);
     }
 
+    // /.会被删除
     // Resolve occurrences of "/./" in the normalized path
     while (true) {
       int index = normalized.indexOf("/./");
@@ -282,6 +285,7 @@ public class HttpProcessor {
         normalized.substring(index + 2);
     }
 
+    // /..会被删除
     // Resolve occurrences of "/../" in the normalized path
     while (true) {
       int index = normalized.indexOf("/../");
@@ -294,6 +298,7 @@ public class HttpProcessor {
         normalized.substring(index + 3);
     }
 
+    // /...作为无效链接
     // Declare occurrences of "/..." (three or more dots) to be invalid
     // (on some Windows platforms this walks the directory tree!!!)
     if (normalized.indexOf("/...") >= 0)

@@ -6,6 +6,12 @@ import java.io.EOFException;
 import org.apache.catalina.util.StringManager;
 
 /**
+ * SocketInputStream的读取逻辑：（也是大部分字节流的读取逻辑）
+ * step1、初始化buf的数组长度，
+ * step2、每次从inputStream中读取一段buf.length的数据，
+ * step3、遍历buf数组，把buf的数据解析
+ * step4、如果buf读取完毕，则从InputStream中继续读取一段buf.length的数据，
+ * step5、回到step3,一直轮询，知道inputStream的数据读取完毕
  * Extends InputStream to be more efficient reading lines during HTTP
  * header processing.
  *
@@ -21,13 +27,13 @@ public class SocketInputStream extends InputStream {
     /**
      * CR.
      */
-    private static final byte CR = (byte) '\r';
+    private static final byte CR = (byte) '\r';//回车
 
 
     /**
      * LF.
      */
-    private static final byte LF = (byte) '\n';
+    private static final byte LF = (byte) '\n';//换行
 
 
     /**
@@ -57,7 +63,7 @@ public class SocketInputStream extends InputStream {
     /**
      * Internal buffer.
      */
-    protected byte buf[];
+    protected byte buf[];//1byte为一个字节
 
 
     /**
@@ -113,6 +119,7 @@ public class SocketInputStream extends InputStream {
 
 
     /**
+     * 读取请求头：请求方式 uri 协议
      * Read the request line, and copies it to the given buffer. This
      * function is meant to be used during the HTTP request header parsing.
      * Do NOT attempt to read the request body using it.
@@ -129,11 +136,12 @@ public class SocketInputStream extends InputStream {
         if (requestLine.methodEnd != 0)
             requestLine.recycle();
 
+        //跳过文件头的CR和LF
         // Checking for a blank line
         int chr = 0;
         do { // Skipping CR or LF
             try {
-                chr = read();
+                chr = read();//向buf中填充从InputStream读取到的内容
             } catch (IOException e) {
                 chr = -1;
             }
@@ -143,19 +151,21 @@ public class SocketInputStream extends InputStream {
                 (sm.getString("requestStream.readline.error"));
         pos--;
 
-        // Reading the method name
+        // Reading the method name  读取http请求方式
 
-        int maxRead = requestLine.method.length;
+        int maxRead = requestLine.method.length;//最大长度默认为8位(POST)
         int readStart = pos;
         int readCount = 0;
 
-        boolean space = false;
+        boolean space = false;//用来标记当前游标的位置是否为空格
 
+        //轮询buf，直到遇到空格
         while (!space) {
-            // if the buffer is full, extend it
+            // if the buffer is full, extend it 如果读取到的数据填满了整个buf,则扩展buf的长度
+            // ，并拷贝旧的数据到buf，然后再从InputStream中读取一些数据
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpRequestLine.MAX_METHOD_SIZE) {
-                    char[] newBuffer = new char[2 * maxRead];
+                    char[] newBuffer = new char[2 * maxRead];//每次读取2*8的长度
                     System.arraycopy(requestLine.method, 0, newBuffer, 0,
                                      maxRead);
                     requestLine.method = newBuffer;
@@ -165,7 +175,7 @@ public class SocketInputStream extends InputStream {
                         (sm.getString("requestStream.readline.toolong"));
                 }
             }
-            // We're at the end of the internal buffer
+            // We're at the end of the internal buffer buf已经读取完了，则buf需要重新从is(InputStream中读取数据)
             if (pos >= count) {
                 int val = read();
                 if (val == -1) {
@@ -176,7 +186,7 @@ public class SocketInputStream extends InputStream {
                 readStart = 0;
             }
             if (buf[pos] == SP) {
-                space = true;
+                space = true;//读取到空格，读取http请求方式的操作完成
             }
             requestLine.method[readCount] = (char) buf[pos];
             readCount++;
@@ -239,7 +249,7 @@ public class SocketInputStream extends InputStream {
         readCount = 0;
 
         while (!eol) {
-            // if the buffer is full, extend it
+            // if the buffer is full, extend it 为了确保读取到header的name和key，如果buf满了，则扩容
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpRequestLine.MAX_PROTOCOL_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
@@ -256,7 +266,8 @@ public class SocketInputStream extends InputStream {
             if (pos >= count) {
                 // Copying part (or all) of the internal buffer to the line
                 // buffer
-                int val = read();
+                //buf已经读取完毕了
+                int val = read();//再次从InputStream读取信息
                 if (val == -1)
                     throw new IOException
                         (sm.getString("requestStream.readline.error"));
@@ -266,7 +277,7 @@ public class SocketInputStream extends InputStream {
             if (buf[pos] == CR) {
                 // Skip CR.
             } else if (buf[pos] == LF) {
-                eol = true;
+                eol = true;//换行符作为当前header已经读取完的标记
             } else {
                 requestLine.protocol[readCount] = (char) buf[pos];
                 readCount++;
@@ -279,16 +290,6 @@ public class SocketInputStream extends InputStream {
     }
 
 
-    /**
-     * Read a header, and copies it to the given buffer. This
-     * function is meant to be used during the HTTP request header parsing.
-     * Do NOT attempt to read the request body using it.
-     *
-     * @param requestLine Request line object
-     * @throws IOException If an exception occurs during the underlying socket
-     * read operations, or if the given buffer is not big enough to accomodate
-     * the whole line.
-     */
     public void readHeader(HttpHeader header)
         throws IOException {
 
@@ -296,7 +297,7 @@ public class SocketInputStream extends InputStream {
         if (header.nameEnd != 0)
             header.recycle();
 
-        // Checking for a blank line
+        // Checking for a blank line 跳过CR(回车) LF（换行）
         int chr = read();
         if ((chr == CR) || (chr == LF)) { // Skipping CR
             if (chr == CR)
@@ -316,8 +317,8 @@ public class SocketInputStream extends InputStream {
 
         boolean colon = false;
 
-        while (!colon) {
-            // if the buffer is full, extend it
+        while (!colon) {//读取header的name
+            // if the buffer is full, extend it  如果缓冲区buf满了，则扩展缓冲区，并拷贝数据
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpHeader.MAX_NAME_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
@@ -329,7 +330,7 @@ public class SocketInputStream extends InputStream {
                         (sm.getString("requestStream.readline.toolong"));
                 }
             }
-            // We're at the end of the internal buffer
+            // We're at the end of the internal buffer 缓冲区读取完成，继续从InputStream中读取数据到缓冲区
             if (pos >= count) {
                 int val = read();
                 if (val == -1) {
@@ -339,11 +340,11 @@ public class SocketInputStream extends InputStream {
                 pos = 0;
                 readStart = 0;
             }
-            if (buf[pos] == COLON) {
+            if (buf[pos] == COLON) {//如果读取到冒号':' ,表示header的key读取完毕
                 colon = true;
             }
             char val = (char) buf[pos];
-            if ((val >= 'A') && (val <= 'Z')) {
+            if ((val >= 'A') && (val <= 'Z')) {//大写转换成小写
                 val = (char) (val - LC_OFFSET);
             }
             header.name[readCount] = val;
@@ -460,15 +461,16 @@ public class SocketInputStream extends InputStream {
 
     /**
      * Read byte.
+     * 按字节读取数据到buf
      */
     public int read()
         throws IOException {
-        if (pos >= count) {
+        if (pos >= count) {//count表示读取到buf的最后的有效的位置，如果pos的位置大于count，则需要重新去is（InputStream）中获取数据
             fill();
             if (pos >= count)
                 return -1;
         }
-        return buf[pos++] & 0xff;
+        return buf[pos++] & 0xff;//oxff: 1111 1111  取低buf[pos++]的八位  返回下一个需要读取的数据
     }
 
 
@@ -521,13 +523,14 @@ public class SocketInputStream extends InputStream {
 
 
     /**
+     * 填充字节流的内容到buf中，要求buf的长度足够大
      * Fill the internal buffer using data from the undelying input stream.
      */
     protected void fill()
         throws IOException {
         pos = 0;
         count = 0;
-        int nRead = is.read(buf, 0, buf.length);
+        int nRead = is.read(buf, 0, buf.length);//每次读取都填满buf数组
         if (nRead > 0) {
             count = nRead;
         }

@@ -35,7 +35,7 @@ public class ServletProcessor1 {
     }
     Class myClass = null;
     try {
-      myClass = loader.loadClass(servletName);
+      myClass = loader.loadClass(servletName);//开始研究类加载器，从研究URLClassLoader开始
     }
     catch (ClassNotFoundException e) {
       System.out.println(e.toString());

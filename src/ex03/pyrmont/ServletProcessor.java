@@ -44,7 +44,7 @@ public class ServletProcessor {
 
     try {
       servlet = (Servlet) myClass.newInstance();
-      HttpRequestFacade requestFacade = new HttpRequestFacade(request);
+      HttpRequestFacade requestFacade = new HttpRequestFacade(request);//重写request对象
       HttpResponseFacade responseFacade = new HttpResponseFacade(response);
       servlet.service(requestFacade, responseFacade);
       ((HttpResponse) response).finishResponse();
