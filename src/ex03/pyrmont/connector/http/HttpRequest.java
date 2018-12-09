@@ -140,7 +140,7 @@ public class HttpRequest implements HttpServletRequest {
       return;
     ParameterMap results = parameters;
     if (results == null)
-      results = new ParameterMap();
+      results = new ParameterMap();//第一次
     results.setLocked(false);
     String encoding = getCharacterEncoding();
     if (encoding == null)
@@ -195,7 +195,7 @@ public class HttpRequest implements HttpServletRequest {
     }
 
     // Store the final results
-    results.setLocked(true);
+    results.setLocked(true);//加上锁，不让servlet端获得修改parameters的值的权限
     parsed = true;
     parameters = results;
   }
@@ -431,7 +431,10 @@ public class HttpRequest implements HttpServletRequest {
 
   public Map getParameterMap() {
     parseParameters();
-    return (this.parameters);
+    return (this.parameters);//返回Map类型，Map类型无setLock方法，
+    // 而ParameterMap类是有Tomcat的BootstrapClassLoader加载的，
+    // 所以客户端的servlet对象无法把此对象强转成ParameterMap类型，无法修改locked对象的值
+    // 除非使用暴力反射，不然无法修改locked,从而起到了保护lock对象的作用
   }
 
   public Enumeration getParameterNames() {

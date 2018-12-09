@@ -34,7 +34,7 @@ public class ServletProcessor {
     }
     Class myClass = null;
     try {
-      myClass = loader.loadClass(servletName);
+      myClass = loader.loadClass(servletName);//使用类加载器加载servlet类
     }
     catch (ClassNotFoundException e) {
       System.out.println(e.toString());
@@ -44,9 +44,9 @@ public class ServletProcessor {
 
     try {
       servlet = (Servlet) myClass.newInstance();
-      HttpRequestFacade requestFacade = new HttpRequestFacade(request);//重写request对象
+      HttpRequestFacade requestFacade = new HttpRequestFacade(request);//重写request对象，
       HttpResponseFacade responseFacade = new HttpResponseFacade(response);
-      servlet.service(requestFacade, responseFacade);
+      servlet.service(requestFacade, responseFacade);//把request和response的门面类给到servlet去调用
       ((HttpResponse) response).finishResponse();
     }
     catch (Exception e) {

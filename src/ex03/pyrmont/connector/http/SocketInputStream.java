@@ -69,19 +69,19 @@ public class SocketInputStream extends InputStream {
     /**
      * Last valid byte.
      */
-    protected int count;
+    protected int count;//记录缓冲区内有效的字节数,当pos游标大于等于count时，结束buf的读取
 
 
     /**
      * Position in the buffer.
      */
-    protected int pos;
+    protected int pos;//缓冲区buf中的游标
 
 
     /**
      * Underlying input stream.
      */
-    protected InputStream is;
+    protected InputStream is;//输入流
 
 
     // ----------------------------------------------------------- Constructors
@@ -161,8 +161,7 @@ public class SocketInputStream extends InputStream {
 
         //轮询buf，直到遇到空格
         while (!space) {
-            // if the buffer is full, extend it 如果读取到的数据填满了整个buf,则扩展buf的长度
-            // ，并拷贝旧的数据到buf，然后再从InputStream中读取一些数据
+            // if the buffer is full, extend it ，在遇到空格前，一直做byte的拼接,保证本次while循环能够读取到完整的请求方法信息（GET,POST）
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpRequestLine.MAX_METHOD_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];//每次读取2*8的长度
@@ -206,7 +205,7 @@ public class SocketInputStream extends InputStream {
         boolean eol = false;
 
         while (!space) {
-            // if the buffer is full, extend it
+            // if the buffer is full, extend it，在遇到空格前，一直做byte的拼接,保证本次while循环能够读取到完整的uri信息
             if (readCount >= maxRead) {
                 if ((2 * maxRead) <= HttpRequestLine.MAX_URI_SIZE) {
                     char[] newBuffer = new char[2 * maxRead];
@@ -341,7 +340,7 @@ public class SocketInputStream extends InputStream {
                 readStart = 0;
             }
             if (buf[pos] == COLON) {//如果读取到冒号':' ,表示header的key读取完毕
-                colon = true;
+                colon = true;//TODO 缓冲区还剩下的部分(pos~count这部分的数据)未读出的内容怎么处理？
             }
             char val = (char) buf[pos];
             if ((val >= 'A') && (val <= 'Z')) {//大写转换成小写
@@ -354,7 +353,7 @@ public class SocketInputStream extends InputStream {
 
         header.nameEnd = readCount - 1;
 
-        // Reading the header value (which can be spanned over multiple lines)
+        // Reading the header value (which can be spanned over multiple lines) 读取请求头的value，可能会跨越多行
 
         maxRead = header.value.length;
         readStart = pos;
@@ -374,23 +373,23 @@ public class SocketInputStream extends InputStream {
             // spaces are not.
             while (space) {
                 // We're at the end of the internal buffer
-                if (pos >= count) {
+                if (pos >= count) {//已经读取完成
                     // Copying part (or all) of the internal buffer to the line
                     // buffer
-                    int val = read();
+                    int val = read();//TODO 缓冲区还剩下的部分未读出的内容怎么处理？ 如果pos<count,则继续读完buf的数据
                     if (val == -1)
                         throw new IOException
                             (sm.getString("requestStream.readline.error"));
-                    pos = 0;
+                    pos = 0;//已经读取完成，则pos重置为0，下一次读取从buf的开头读取
                     readStart = 0;
                 }
-                if ((buf[pos] == SP) || (buf[pos] == HT)) {
+                if ((buf[pos] == SP) || (buf[pos] == HT)) {//跳过空格" "和制表符"\t"
                     pos++;
                 } else {
                     space = false;
                 }
             }
-
+            //读取一行  eol表示是否换行
             while (!eol) {
                 // if the buffer is full, extend it
                 if (readCount >= maxRead) {
@@ -405,7 +404,7 @@ public class SocketInputStream extends InputStream {
                             (sm.getString("requestStream.readline.toolong"));
                     }
                 }
-                // We're at the end of the internal buffer
+                // We're at the end of the internal buffer 已经读取完成
                 if (pos >= count) {
                     // Copying part (or all) of the internal buffer to the line
                     // buffer
@@ -417,9 +416,9 @@ public class SocketInputStream extends InputStream {
                     readStart = 0;
                 }
                 if (buf[pos] == CR) {
-                } else if (buf[pos] == LF) {
-                    eol = true;
-                } else {
+                } else if (buf[pos] == LF) {// \n
+                    eol = true;//换行则跳出循环
+                } else {//继续读取数据
                     // FIXME : Check if binary conversion is working fine
                     int ch = buf[pos] & 0xff;
                     header.value[readCount] = (char) ch;
@@ -428,9 +427,9 @@ public class SocketInputStream extends InputStream {
                 pos++;
             }
 
-            int nextChr = read();
+            int nextChr = read();//继续从InputStream中读取数据
 
-            if ((nextChr != SP) && (nextChr != HT)) {
+            if ((nextChr != SP) && (nextChr != HT)) {//如果再次遇到非空格和非制表符\t，则表示header的value读取完毕，跳出大循环
                 pos--;
                 validLine = false;
             } else {
@@ -461,6 +460,7 @@ public class SocketInputStream extends InputStream {
 
     /**
      * Read byte.
+     * 如果buff内还有数据未读取，则不会重新刷新buf的内容，返回当前游标对应缓冲区的值
      * 按字节读取数据到buf
      */
     public int read()
@@ -470,7 +470,8 @@ public class SocketInputStream extends InputStream {
             if (pos >= count)
                 return -1;
         }
-        return buf[pos++] & 0xff;//oxff: 1111 1111  取低buf[pos++]的八位  返回下一个需要读取的数据
+        //如果缓冲区内还有数据，则不再继续读取InputStream的数据
+        return buf[pos++] & 0xff;//oxff: 1111 1111  取低buf[pos++]的低八位  返回下一个需要读取的数据
     }
 
 
@@ -523,7 +524,7 @@ public class SocketInputStream extends InputStream {
 
 
     /**
-     * 填充字节流的内容到buf中，要求buf的长度足够大
+     * 填充字节流的内容到buf中
      * Fill the internal buffer using data from the undelying input stream.
      */
     protected void fill()
