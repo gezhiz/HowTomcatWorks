@@ -149,7 +149,7 @@ public final class HttpConnector
      * The set of processors that have been created but are not currently
      * being used to process a request.
      */
-    private Stack processors = new Stack();
+    private Stack processors = new Stack();//HttpProcessor对象池，避免为每一次请求都创建HttpProcessor对象
 
 
     /**
@@ -798,11 +798,13 @@ public final class HttpConnector
                 // log("createProcessor: Creating new processor");
                 return (newProcessor());
             } else {
+                //如果maxProcessors是负数，则每次请求都创建新的processor来处理
                 if (maxProcessors < 0) {
                     // if (debug >= 2)
                     // log("createProcessor: Creating new processor");
                     return (newProcessor());
                 } else {
+                    //无法创建更多的请求，丢弃
                     // if (debug >= 2)
                     // log("createProcessor: Cannot create new processor");
                     return (null);
@@ -1015,6 +1017,7 @@ public final class HttpConnector
             //                log("run: Assigning socket to processor " + processor);
             processor.assign(socket);//给processor分配socket，然后对socket进行服务
             //在接到被分配的socket后，processor所在的线程会被唤醒，然后执行run()方法,执行process()方法,服务完成后，把processor对象放回栈中
+            //assign方法直接返回，Connector可以在接受到请求后继续接受其他请求
 
             // The processor will recycle itself when it finishes
 
@@ -1164,7 +1167,7 @@ public final class HttpConnector
             if ((maxProcessors > 0) && (curProcessors >= maxProcessors))
                 break;
             HttpProcessor processor = newProcessor();//每次新建的process，都直接将其启动，然后等待socket的接入
-            recycle(processor);
+            recycle(processor);//把processor放入processors中，可以重复利用
         }
 
     }

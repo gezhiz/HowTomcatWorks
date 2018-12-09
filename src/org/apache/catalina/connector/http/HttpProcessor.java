@@ -288,8 +288,9 @@ final class HttpProcessor
     synchronized void assign(Socket socket) {
 
         // Wait for the Processor to get the previous Socket
+        //当前的socket是否可用
         while (available) {
-            //当前socket是可用的，则赋值方法等待
+            //当前socket是可用的，则赋值方法一直等待，直到前一个socket处理完毕
             try {
                 wait();
             } catch (InterruptedException e) {
@@ -300,7 +301,8 @@ final class HttpProcessor
         // Store the newly available Socket and notify our thread
         this.socket = socket;
         available = true;
-        notifyAll();
+        notifyAll();//assign方法由Connector调用，connector和processor分别在自己的线程中跑
+                    // ，processor在无socket可用时阻塞，由Connector赋值socket之后，唤醒processor线程
 
         if ((debug >= 1) && (socket != null))
             log(" An incoming request is being assigned");
@@ -642,6 +644,7 @@ final class HttpProcessor
 
 
     /**
+     * 解析请求方法
      * Parse the incoming HTTP request and set the corresponding HTTP request
      * properties.
      *
@@ -881,7 +884,7 @@ final class HttpProcessor
      * @param socket The socket on which we are connected to the client
      */
     private void process(Socket socket) {
-        boolean ok = true;
+        boolean ok = true;//用来表示在解析过程中是否发生异常
         boolean finishResponse = true;
         SocketInputStream input = null;
         OutputStream output = null;
@@ -889,7 +892,7 @@ final class HttpProcessor
         // Construct and initialize the objects we will need
         try {
             input = new SocketInputStream(socket.getInputStream(),
-                                          connector.getBufferSize());
+                                          connector.getBufferSize());//缓冲区大小配置来自Connector。注：HttpProcessor是对普通用户不可见的
         } catch (Exception e) {
             log("process.create", e);
             ok = false;
@@ -918,12 +921,11 @@ final class HttpProcessor
             // Parse the incoming request
             try {
                 if (ok) {
-
-                    parseConnection(socket);
-                    parseRequest(input, output);
+                    parseConnection(socket);//解析请求协议
+                    parseRequest(input, output);//解析请求方法
                     if (!request.getRequest().getProtocol()
                         .startsWith("HTTP/0"))
-                        parseHeaders(input);
+                        parseHeaders(input);//解析请求头
                     if (http11) {
                         // Sending a request acknowledge back to the client if
                         // requested.
