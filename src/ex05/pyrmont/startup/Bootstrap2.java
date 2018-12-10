@@ -13,7 +13,7 @@ import org.apache.catalina.Pipeline;
 import org.apache.catalina.Valve;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.http.HttpConnector;
-
+// 包含两个wrapper的context容器，需要一个引射器mapper来映射servlet
 public final class Bootstrap2 {
   public static void main(String[] args) {
     HttpConnector connector = new HttpConnector();

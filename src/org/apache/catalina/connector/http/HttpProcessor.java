@@ -977,7 +977,7 @@ final class HttpProcessor
                     ("Date", FastHttpDateFormat.getCurrentDate());
                 if (ok) {
                     //如果使用的是StandardService启动，getContainer()获取到的是Engine对象，
-                    // 因为StandardService在addConnector()方法，调用了connectoner.set(this.container)，和service拥有同一个container
+                    // 因为StandardService在addConnector()方法，调用了connector.set(this.container)，和service拥有同一个container
                     connector.getContainer().invoke(request, response);
                 }
             } catch (ServletException e) {

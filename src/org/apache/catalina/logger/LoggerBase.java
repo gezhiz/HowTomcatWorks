@@ -117,6 +117,7 @@ public abstract class LoggerBase
 
 
     /**
+     * 默认的日志等级
      * The verbosity level for above which log messages may be filtered.
      */
     protected int verbosity = ERROR;

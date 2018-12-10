@@ -9,7 +9,7 @@ import org.apache.catalina.Pipeline;
 import org.apache.catalina.Valve;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.http.HttpConnector;
-
+//部署了一个Wrapper的容器
 public final class Bootstrap1 {
   public static void main(String[] args) {
 

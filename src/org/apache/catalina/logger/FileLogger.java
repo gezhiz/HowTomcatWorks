@@ -276,6 +276,7 @@ public class FileLogger
         String tsDate = tsString.substring(0, 10);
 
         // If the date has changed, switch log files
+        //如果日期发生变化，则打开新的日志文件
         if (!date.equals(tsDate)) {
             synchronized (this) {
                 if (!date.equals(tsDate)) {
@@ -317,6 +318,7 @@ public class FileLogger
 
 
     /**
+     * 打开新的日志文件
      * Open the new log file for the date specified by <code>date</code>.
      */
     private void open() {

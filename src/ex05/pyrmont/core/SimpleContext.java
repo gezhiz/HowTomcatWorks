@@ -46,7 +46,7 @@ public class SimpleContext implements Context, Pipeline {
   protected Loader loader = null;
   protected SimplePipeline pipeline = new SimplePipeline(this);
   protected HashMap servletMappings = new HashMap();
-  protected Mapper mapper = null;
+  protected Mapper mapper = null;//用来匹配子servlet
   protected HashMap mappers = new HashMap();
   private Container parent = null;
 
