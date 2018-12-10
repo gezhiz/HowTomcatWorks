@@ -179,6 +179,7 @@ public class WebappClassLoader
 
 
     /**
+     * 包触发器：属于包触发器的类，直接使用父类加载器加载
      * Set of package names which are not allowed to be loaded from a webapp
      * class loader without delegating first.
      */
@@ -250,6 +251,7 @@ public class WebappClassLoader
 
 
     /**
+     * 已加载的类的缓存
      * The cache of ResourceEntry for classes and resources we have loaded,
      * keyed by resource name.
      */
@@ -257,6 +259,7 @@ public class WebappClassLoader
 
 
     /**
+     * 缓存:保存了加载失败的类。下次再加载这里面的类时，直接报错ClassNotFundException
      * The list of not found resources.
      */
     protected HashMap notFoundResources = new HashMap();
@@ -276,7 +279,7 @@ public class WebappClassLoader
      * delegate to the parent only if the class or resource is not
      * found locally.
      */
-    protected boolean delegate = false;
+    protected boolean delegate = false;//是否使用父类委托机制
 
 
     /**
@@ -1930,7 +1933,7 @@ public class WebappClassLoader
 
     /**
      * Filter classes.
-     *
+     * 过滤掉一些不能加载的包前缀
      * @param name class name
      * @return true if the class should be filtered
      */
@@ -1980,6 +1983,7 @@ public class WebappClassLoader
 
 
     /**
+     * 验证是否包含trigger指定的不能加载的类
      * Check the specified JAR file, and return <code>true</code> if it does
      * not contain any of the trigger classes.
      *

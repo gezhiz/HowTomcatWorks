@@ -3394,7 +3394,7 @@ public class StandardContext
         if (getManager() == null) {     // (3) After prerequisites
             if (debug >= 1)
                 log("Configuring default Manager");
-            setManager(new StandardManager());
+            setManager(new StandardManager());//使用标准的session管理器
         }
 
         // Initialize character set mapper

@@ -444,6 +444,7 @@ public class WebappLoader
 
 
     /**
+     * 设置类加载器的名称，默认情况下，loaderClass=org.apache.catalina.loader.WebappClassLoader
      * Set the ClassLoader class name.
      *
      * @param loaderClass The new ClassLoader class name
@@ -466,6 +467,7 @@ public class WebappLoader
 
 
     /**
+     * 设置是否支持自动重载
      * Set the reloadable flag for this Loader.
      *
      * @param reloadable The new reloadable flag
@@ -660,10 +662,10 @@ public class WebappLoader
             }
 
             // Configure our repositories
-            setRepositories();
-            setClassPath();
+            setRepositories();//设置仓库
+            setClassPath();//设置类路径
 
-            setPermissions();
+            setPermissions();//设置访问权限
 
             if (classLoader instanceof Lifecycle)
                 ((Lifecycle) classLoader).start();
@@ -761,12 +763,13 @@ public class WebappLoader
 
 
     /**
+     * 自定义的类加载器必须是WebappClassLoader类型的
      * Create associated classLoader.
      */
     private WebappClassLoader createClassLoader()
         throws Exception {
 
-        Class clazz = Class.forName(loaderClass);
+        Class clazz = Class.forName(loaderClass);//根据类名加载"类加载器"
         WebappClassLoader classLoader = null;
 
         if (parentClassLoader == null) {
@@ -842,7 +845,7 @@ public class WebappLoader
     private void notifyContext() {
 
         WebappContextNotifier notifier = new WebappContextNotifier();
-        (new Thread(notifier)).start();
+        (new Thread(notifier)).start();//在一个新的线程中启动container的reload方法
 
     }
 

@@ -667,6 +667,7 @@ public abstract class ManagerBase implements Manager {
 
 
     /**
+     * 生成一个唯一的sessionID
      * Generate and return a new session identifier.
      */
     protected synchronized String generateSessionId() {

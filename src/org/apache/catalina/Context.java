@@ -318,6 +318,7 @@ public interface Context extends Container {
 
 
     /**
+     * 设置是否支持载入器的重新加载
      * Set the reloadable flag for this web application.
      *
      * @param reloadable The new reloadable flag

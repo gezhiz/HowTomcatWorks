@@ -189,6 +189,7 @@ public interface Loader {
 
 
     /**
+     * 为当前的载入器添加一个新的仓库
      * Add a new repository to the set of repositories for this class loader.
      *
      * @param repository Repository to be added
@@ -204,6 +205,7 @@ public interface Loader {
 
 
     /**
+     * 是否支持类的动态修改
      * Has the internal repository associated with this Loader been modified,
      * such that the loaded classes should be reloaded?
      */
